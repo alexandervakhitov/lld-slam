@@ -36,7 +36,7 @@
 #include<iostream>
 
 #include<mutex>
-
+#include "Sleep.h"
 
 using namespace std;
 
@@ -1509,7 +1509,7 @@ void Tracking::Reset()
     {
         mpViewer->RequestStop();
         while(!mpViewer->isStopped())
-            usleep(3000);
+            sleep_ms(3000);
     }
 
     // Reset Local Mapping

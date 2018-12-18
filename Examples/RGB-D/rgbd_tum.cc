@@ -27,6 +27,7 @@
 #include<opencv2/core/core.hpp>
 
 #include<System.h>
+#include "Sleep.h"
 
 using namespace std;
 
@@ -115,7 +116,7 @@ int main(int argc, char **argv)
             T = tframe-vTimestamps[ni-1];
 
         if(ttrack<T)
-            usleep((T-ttrack)*1e6);
+            sleep_ms((T-ttrack)*1e6);
     }
 
     // Stop all threads

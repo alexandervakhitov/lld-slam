@@ -19,7 +19,7 @@
 */
 
 #include "ViewerAR.h"
-
+#include "Sleep.h"
 #include <opencv2/highgui/highgui.hpp>
 
 #include <mutex>
@@ -230,7 +230,7 @@ void ViewerAR::Run()
         }
 
         pangolin::FinishFrame();
-        usleep(mT*1000);
+        sleep_ms(mT*1000);
     }
 
 }
