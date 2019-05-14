@@ -16,12 +16,15 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
+*
+* Modified by Alexander Vakhitov (2018): added MapLine-related containers and methods
 */
 
 #include "KeyFrame.h"
 #include "Converter.h"
 #include "ORBmatcher.h"
 #include<mutex>
+#include <include/MapLine.h>
 
 namespace ORB_SLAM2
 {
@@ -34,14 +37,35 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mnTrackReferenceForFrame(0), mnFuseTargetForKF(0), mnBALocalForKF(0), mnBAFixedForKF(0),
     mnLoopQuery(0), mnLoopWords(0), mnRelocQuery(0), mnRelocWords(0), mnBAGlobalForKF(0),
     fx(F.fx), fy(F.fy), cx(F.cx), cy(F.cy), invfx(F.invfx), invfy(F.invfy),
-    mbf(F.mbf), mb(F.mb), mThDepth(F.mThDepth), N(F.N), mvKeys(F.mvKeys), mvKeysUn(F.mvKeysUn),
-    mvuRight(F.mvuRight), mvDepth(F.mvDepth), mDescriptors(F.mDescriptors.clone()),
+    mbf(F.mbf), mb(F.mb), mThDepth(F.mThDepth), N(F.N),
+    N_right(F.N_right),
+    mvKeys(F.mvKeys), mvKeysUn(F.mvKeysUn),
+    mvuRight(F.mvuRight), mvDepth(F.mvDepth),
     mBowVec(F.mBowVec), mFeatVec(F.mFeatVec), mnScaleLevels(F.mnScaleLevels), mfScaleFactor(F.mfScaleFactor),
     mfLogScaleFactor(F.mfLogScaleFactor), mvScaleFactors(F.mvScaleFactors), mvLevelSigma2(F.mvLevelSigma2),
     mvInvLevelSigma2(F.mvInvLevelSigma2), mnMinX(F.mnMinX), mnMinY(F.mnMinY), mnMaxX(F.mnMaxX),
-    mnMaxY(F.mnMaxY), mK(F.mK), mvpMapPoints(F.mvpMapPoints), mpKeyFrameDB(pKFDB),
-    mpORBvocabulary(F.mpORBvocabulary), mbFirstConnection(true), mpParent(NULL), mbNotErase(false),
-    mbToBeErased(false), mbBad(false), mHalfBaseline(F.mb/2), mpMap(pMap)
+    mnMaxY(F.mnMaxY), mK(F.mK), mvpMapPoints(F.mvpMapPoints),
+    mvpMapLines(F.mvpMapLines),
+    mpKeyFrameDB(pKFDB),
+    mpORBvocabulary(F.mpORBvocabulary),
+
+
+
+    mvPointMatches(F.mvPointMatches),
+    mDescriptors(F.mDescriptors.clone()),
+    mDescriptorsLines(F.mDescriptorsLines.clone()),
+    mvLinesLeft(F.mvLinesLeft), mvLinesRight(F.mvLinesRight),
+    Ke(F.Ke),
+    line_matches(F.line_matches),
+    lines_grid(F.lines_grid), max_dist(F.max_dist),
+
+    mbFirstConnection(true),
+    mpParent(NULL),
+    mbNotErase(false),
+    mbToBeErased(false),
+    mbBad(false),
+    mHalfBaseline(F.mb/2),
+    mpMap(pMap)
 {
     mnId=nNextId++;
 
@@ -53,7 +77,9 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
             mGrid[i][j] = F.mGrid[i][j];
     }
 
-    SetPose(F.mTcw);    
+    SetPose(F.mTcw);
+
+//    mvpMapLines = std::vector<MapLine*>(F.lines_left.size(), static_cast<MapLine*>(NULL));
 }
 
 void KeyFrame::ComputeBoW()
@@ -280,11 +306,26 @@ vector<MapPoint*> KeyFrame::GetMapPointMatches()
     return mvpMapPoints;
 }
 
+vector<MapLine*> KeyFrame::GetMapLineMatches()
+{
+    unique_lock<mutex> lock(mMutexFeatures);
+    return mvpMapLines;
+}
+
+
 MapPoint* KeyFrame::GetMapPoint(const size_t &idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return mvpMapPoints[idx];
 }
+
+
+MapLine* KeyFrame::GetMapLine(const size_t &idx)
+{
+    unique_lock<mutex> lock(mMutexFeatures);
+    return mvpMapLines[idx];
+}
+
 
 void KeyFrame::UpdateConnections()
 {
@@ -662,4 +703,28 @@ float KeyFrame::ComputeSceneMedianDepth(const int q)
     return vDepths[(vDepths.size()-1)/q];
 }
 
+void KeyFrame::AddMapLine(MapLine *pMP, const size_t &idx)
+{
+    unique_lock<mutex> lock(mMutexFeatures);
+    mvpMapLines[idx] = pMP;
+}
+
+void KeyFrame::EraseMapLineMatch(const size_t &idx)
+{
+    unique_lock<mutex> lock(mMutexFeatures);
+    mvpMapLines[idx]=static_cast<MapLine*>(NULL);
+
+}
+
+void KeyFrame::EraseMapLineMatch(MapLine* pML)
+{
+    int idx = pML->GetIndexInKeyFrame(this);
+    if(idx>=0)
+        mvpMapLines[idx]=static_cast<MapLine*>(NULL);
+}
+
+void KeyFrame::ReplaceMapLineMatch(const size_t &idx, MapLine* pMP)
+{
+    mvpMapLines[idx]=pMP;
+}
 } //namespace ORB_SLAM

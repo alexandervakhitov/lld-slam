@@ -16,12 +16,16 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
+*
+* Modified by Alexander Vakhitov (2018): added MapLine-related containers and methods
 */
 
 #include "Frame.h"
 #include "Converter.h"
 #include "ORBmatcher.h"
+#include "TwoFrameLineMatcher.h"
 #include <thread>
+#include <opencv/cxeigen.hpp>
 
 namespace ORB_SLAM2
 {
@@ -38,32 +42,71 @@ Frame::Frame()
 //Copy Constructor
 Frame::Frame(const Frame &frame)
     :mpORBvocabulary(frame.mpORBvocabulary), mpORBextractorLeft(frame.mpORBextractorLeft), mpORBextractorRight(frame.mpORBextractorRight),
-     mTimeStamp(frame.mTimeStamp), mK(frame.mK.clone()), mDistCoef(frame.mDistCoef.clone()),
+     mTimeStamp(frame.mTimeStamp), mK(frame.mK.clone()), Ke(frame.Ke), mDistCoef(frame.mDistCoef.clone()),
      mbf(frame.mbf), mb(frame.mb), mThDepth(frame.mThDepth), N(frame.N), mvKeys(frame.mvKeys),
      mvKeysRight(frame.mvKeysRight), mvKeysUn(frame.mvKeysUn),  mvuRight(frame.mvuRight),
      mvDepth(frame.mvDepth), mBowVec(frame.mBowVec), mFeatVec(frame.mFeatVec),
      mDescriptors(frame.mDescriptors.clone()), mDescriptorsRight(frame.mDescriptorsRight.clone()),
-     mvpMapPoints(frame.mvpMapPoints), mvbOutlier(frame.mvbOutlier), mnId(frame.mnId),
+     mvpMapPoints(frame.mvpMapPoints),
+     mvpMapLines(frame.mvpMapLines),
+     mvbOutlier(frame.mvbOutlier),
+     mvbOutlierLines(frame.mvbOutlierLines),
+     mnId(frame.mnId),
      mpReferenceKF(frame.mpReferenceKF), mnScaleLevels(frame.mnScaleLevels),
      mfScaleFactor(frame.mfScaleFactor), mfLogScaleFactor(frame.mfLogScaleFactor),
-     mvScaleFactors(frame.mvScaleFactors), mvInvScaleFactors(frame.mvInvScaleFactors),
-     mvLevelSigma2(frame.mvLevelSigma2), mvInvLevelSigma2(frame.mvInvLevelSigma2)
+
+
+
+
+
+     mvScaleFactors(frame.mvScaleFactors),
+     mvInvScaleFactors(frame.mvInvScaleFactors),
+
+     mvLevelSigma2(frame.mvLevelSigma2),
+
+
+
+
+     mvInvLevelSigma2(frame.mvInvLevelSigma2),
+     mvLinesLeft(frame.mvLinesLeft), mvLinesRight(frame.mvLinesRight),
+     mDescriptorsLines(frame.mDescriptorsLines), mDescriptorsLinesRight(frame.mDescriptorsLinesRight.clone()),
+     line_matches(frame.line_matches),
+     max_dist(frame.max_dist), maxInCell(frame.maxInCell)
 {
     for(int i=0;i<FRAME_GRID_COLS;i++)
         for(int j=0; j<FRAME_GRID_ROWS; j++)
             mGrid[i][j]=frame.mGrid[i][j];
+
+    CreateLineGrid();
+
+    for(int i=0;i<FRAME_DIST_CELLS;i++)
+        for(int j=0; j<FRAME_ANG_CELLS; j++)
+            lines_grid[i][j] = frame.lines_grid[i][j];
+
+
 
     if(!frame.mTcw.empty())
         SetPose(frame.mTcw);
 }
 
 
-Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeStamp, ORBextractor* extractorLeft, ORBextractor* extractorRight, ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
-    :mpORBvocabulary(voc),mpORBextractorLeft(extractorLeft),mpORBextractorRight(extractorRight), mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
-     mpReferenceKF(static_cast<KeyFrame*>(NULL))
+Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeStamp, ORBextractor* extractorLeft,
+             ORBextractor* extractorRight, ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf,
+             const float &thDepth, LineExtractor* linesExtractorLeft, LineExtractor* linesExtractorRight,
+             LineMatcher* lineMatcher,
+             double tau, int minLineLen, int maxInCell)
+        :mpORBvocabulary(voc),mpORBextractorLeft(extractorLeft),mpORBextractorRight(extractorRight),
+        mTimeStamp(timeStamp),
+        mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
+         mpLineExtractorLeft(linesExtractorLeft),
+         mpLineExtractorRight(linesExtractorRight),
+         mpReferenceKF(static_cast<KeyFrame*>(NULL)),
+         thrDD(tau), maxInCell(maxInCell)
 {
     // Frame ID
     mnId=nNextId++;
+
+    CreateLineGrid();
 
     // Scale Level Info
     mnScaleLevels = mpORBextractorLeft->GetLevels();
@@ -89,9 +132,28 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
 
     ComputeStereoMatches();
 
-    mvpMapPoints = vector<MapPoint*>(N,static_cast<MapPoint*>(NULL));    
+    if (linesExtractorLeft) {
+        linesExtractorLeft->ExtractLines(imLeft, &mvLinesLeft, &mDescriptorsLines);
+        linesExtractorRight->ExtractLines(imRight, &mvLinesRight, &mDescriptorsLinesRight);
+    }
+
+    cv::cv2eigen(mK, Ke);
+    TwoFrameLineMatcher lrLineMatcher (Ke, mbf/mK.at<float>(0,0), thrDD, minLineLen, lineMatcher);
+    lrLineMatcher.MatchLines(mvLinesLeft, mvLinesRight, mDescriptorsLines, mDescriptorsLinesRight, &line_matches);
+
+    int lcnt = 0;
+    for (size_t li = 0; li < line_matches.size(); li++)
+    {
+        if (line_matches[li] >= 0)
+        {
+            lcnt++;
+        }
+    }
+    mvpMapPoints = vector<MapPoint*>(N,static_cast<MapPoint*>(NULL));
     mvbOutlier = vector<bool>(N,false);
 
+    mvpMapLines = vector<MapLine*>(mvLinesLeft.size(),static_cast<MapLine*>(NULL));
+    mvbOutlierLines  = vector<bool>(mvLinesLeft.size(),false);
 
     // This is done only for the first Frame (or after a change in the calibration)
     if(mbInitialComputations)
@@ -113,8 +175,10 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
 
     mb = mbf/fx;
 
+    max_dist = sqrt(imLeft.cols*imLeft.cols + imLeft.rows*imLeft.rows+0.0)/fx;
     AssignFeaturesToGrid();
 }
+
 
 Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
     :mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
@@ -170,13 +234,19 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
     AssignFeaturesToGrid();
 }
 
+//Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,
+//      LineExtractor* linesExtractor, ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth);
 
-Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
-    :mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
-     mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth)
+Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,LineExtractor* linesExtractorLeft,
+             ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
+        :mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
+         mpLineExtractorLeft(linesExtractorLeft), mpLineExtractorRight(static_cast<LineExtractor*>(NULL)),
+         mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth)
 {
     // Frame ID
     mnId=nNextId++;
+
+    CreateLineGrid();
 
     // Scale Level Info
     mnScaleLevels = mpORBextractorLeft->GetLevels();
@@ -197,12 +267,22 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
 
     UndistortKeyPoints();
 
+    if (linesExtractorLeft) {
+        linesExtractorLeft->ExtractLines(imGray, &mvLinesLeft, &mDescriptorsLines);
+    }
+
     // Set no stereo information
     mvuRight = vector<float>(N,-1);
     mvDepth = vector<float>(N,-1);
 
+    line_matches = vector<int>(mvLinesLeft.size(),-1);
+
     mvpMapPoints = vector<MapPoint*>(N,static_cast<MapPoint*>(NULL));
     mvbOutlier = vector<bool>(N,false);
+
+
+    mvpMapLines = vector<MapLine*>(mvLinesLeft.size(),static_cast<MapLine*>(NULL));
+    mvbOutlierLines  = vector<bool>(mvLinesLeft.size(),false);
 
     // This is done only for the first Frame (or after a change in the calibration)
     if(mbInitialComputations)
@@ -224,7 +304,11 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
 
     mb = mbf/fx;
 
+    cv::cv2eigen(mK, Ke);
+
     AssignFeaturesToGrid();
+
+//    std::cout << " frame created " << std::endl;
 }
 
 void Frame::AssignFeaturesToGrid()
@@ -678,5 +762,17 @@ cv::Mat Frame::UnprojectStereo(const int &i)
     else
         return cv::Mat();
 }
+
+void Frame::CreateLineGrid()
+{
+    lines_grid.clear();
+    for(int i=0;i<FRAME_DIST_CELLS;i++) {
+        lines_grid.push_back(std::vector<std::vector<int>> ());
+        for(int j=0; j<FRAME_ANG_CELLS; j++) {
+            lines_grid[i].push_back(std::vector<int> ());
+        }
+    }
+}
+
 
 } //namespace ORB_SLAM

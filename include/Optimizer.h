@@ -16,6 +16,8 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
+*
+* Modified by Alexander Vakhitov (2018): added MapLine-related containers and methods
 */
 
 #ifndef OPTIMIZER_H
@@ -28,6 +30,7 @@
 #include "Frame.h"
 
 #include "Thirdparty/g2o/g2o/types/types_seven_dof_expmap.h"
+#include "Thirdparty/g2o/g2o/core/optimization_algorithm_levenberg.h"
 
 namespace ORB_SLAM2
 {
@@ -38,12 +41,13 @@ class Optimizer
 {
 public:
     void static BundleAdjustment(const std::vector<KeyFrame*> &vpKF, const std::vector<MapPoint*> &vpMP,
-                                 int nIterations = 5, bool *pbStopFlag=NULL, const unsigned long nLoopKF=0,
-                                 const bool bRobust = true);
-    void static GlobalBundleAdjustemnt(Map* pMap, int nIterations=5, bool *pbStopFlag=NULL,
+                                 const vector<MapLine *> &vpML,
+                                 int nIterations = 5, bool *pbStopFlag=NULL, unsigned long nLoopKF=0,
+                                 bool bRobust = true);
+    void static GlobalBundleAdjustment(Map* pMap, int nIterations=5, bool *pbStopFlag=NULL,
                                        const unsigned long nLoopKF=0, const bool bRobust = true);
-    void static LocalBundleAdjustment(KeyFrame* pKF, bool *pbStopFlag, Map *pMap);
-    int static PoseOptimization(Frame* pFrame);
+    void static LocalBundleAdjustment(KeyFrame* pKF, bool *pbStopFlag, Map *pMap, double gamma=1.0);
+    int static PoseOptimization(Frame* pFrame, double gamma=1.0);
 
     // if bFixScale is true, 6DoF optimization (stereo,rgbd), 7DoF otherwise (mono)
     void static OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* pCurKF,
@@ -55,6 +59,7 @@ public:
     // if bFixScale is true, optimize SE3 (stereo,rgbd), Sim3 otherwise (mono)
     static int OptimizeSim3(KeyFrame* pKF1, KeyFrame* pKF2, std::vector<MapPoint *> &vpMatches1,
                             g2o::Sim3 &g2oS12, const float th2, const bool bFixScale);
+
 };
 
 } //namespace ORB_SLAM

@@ -16,6 +16,8 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
+*
+* Modified by Alexander Vakhitov (2018): added MapLine-related containers and methods
 */
 
 #ifndef KEYFRAME_H
@@ -30,7 +32,7 @@
 #include "KeyFrameDatabase.h"
 
 #include <mutex>
-
+#include "MapLine.h"
 
 namespace ORB_SLAM2
 {
@@ -89,6 +91,13 @@ public:
     std::vector<MapPoint*> GetMapPointMatches();
     int TrackedMapPoints(const int &minObs);
     MapPoint* GetMapPoint(const size_t &idx);
+
+    void AddMapLine(MapLine *pMP, const size_t &idx);
+    void EraseMapLineMatch(const size_t &idx);
+    void EraseMapLineMatch(MapLine* pML);
+    void ReplaceMapLineMatch(const size_t &idx, MapLine* pMP);
+    MapLine* GetMapLine(const size_t &idx);
+    vector<MapLine*> GetMapLineMatches();
 
     // KeyPoint functions
     std::vector<size_t> GetFeaturesInArea(const float &x, const float  &y, const float  &r) const;
@@ -158,13 +167,18 @@ public:
 
     // Number of KeyPoints
     const int N;
+    const int N_right;
 
     // KeyPoints, stereo coordinate and descriptors (all associated by an index)
     const std::vector<cv::KeyPoint> mvKeys;
     const std::vector<cv::KeyPoint> mvKeysUn;
     const std::vector<float> mvuRight; // negative value for monocular points
     const std::vector<float> mvDepth; // negative value for monocular points
+    const std::vector<int> mvPointMatches;
     const cv::Mat mDescriptors;
+    const cv::Mat mDescriptorsLines;
+
+    const std::vector<KeyLine> mvLinesLeft, mvLinesRight;
 
     //BoW
     DBoW2::BowVector mBowVec;
@@ -188,7 +202,13 @@ public:
     const int mnMaxY;
     const cv::Mat mK;
 
+    Eigen::Matrix3d Ke;
 
+    const std::vector<int> line_matches;
+
+    const std::vector<std::vector<std::vector<int>>> lines_grid;
+
+    const double max_dist;
     // The following variables need to be accessed trough a mutex to be thread safe.
 protected:
 
@@ -201,6 +221,7 @@ protected:
 
     // MapPoints associated to keypoints
     std::vector<MapPoint*> mvpMapPoints;
+    std::vector<MapLine*> mvpMapLines;
 
     // BoW
     KeyFrameDatabase* mpKeyFrameDB;

@@ -16,6 +16,8 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
+*
+* Modified by Alexander Vakhitov (2018): added MapLine-related containers and methods
 */
 
 #include "Map.h"
@@ -43,6 +45,13 @@ void Map::AddMapPoint(MapPoint *pMP)
     mspMapPoints.insert(pMP);
 }
 
+void Map::AddMapLine(MapLine *pML)
+{
+    unique_lock<mutex> lock(mMutexMap);
+    mspMapLines.insert(pML);
+}
+
+
 void Map::EraseMapPoint(MapPoint *pMP)
 {
     unique_lock<mutex> lock(mMutexMap);
@@ -52,7 +61,17 @@ void Map::EraseMapPoint(MapPoint *pMP)
     // Delete the MapPoint
 }
 
-void Map::EraseKeyFrame(KeyFrame *pKF)
+
+void Map::EraseMapLine(MapLine* pML)
+{
+    unique_lock<mutex> lock(mMutexMap);
+    mspMapLines.erase(pML);
+
+    // TODO: This only erase the pointer.
+    // Delete the MapPoint
+}
+
+    void Map::EraseKeyFrame(KeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutexMap);
     mspKeyFrames.erase(pKF);
@@ -90,6 +109,13 @@ vector<MapPoint*> Map::GetAllMapPoints()
     unique_lock<mutex> lock(mMutexMap);
     return vector<MapPoint*>(mspMapPoints.begin(),mspMapPoints.end());
 }
+
+vector<MapLine*> Map::GetAllMapLines()
+{
+    unique_lock<mutex> lock(mMutexMap);
+    return vector<MapLine*>(mspMapLines.begin(),mspMapLines.end());
+}
+
 
 long unsigned int Map::MapPointsInMap()
 {

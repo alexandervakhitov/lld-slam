@@ -16,6 +16,8 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
+*
+* Modified by Alexander Vakhitov (2018): added line extraction and tracking
 */
 
 
@@ -37,6 +39,7 @@
 #include "Initializer.h"
 #include "MapDrawer.h"
 #include "System.h"
+#include <include/LineExtractor.h>
 
 #include <mutex>
 
@@ -55,7 +58,8 @@ class Tracking
 
 public:
     Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Map* pMap,
-             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor);
+             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, LineExtractor* lineExtractorLeft,
+             LineExtractor* lineExtractorRight); //, bool is_icra_lines=false
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
     cv::Mat GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp);
@@ -74,6 +78,7 @@ public:
     // Use this function if you have deactivated local mapping and you only want to localize the camera.
     void InformOnlyTracking(const bool &flag);
 
+    void RunLocalMappingProc(KeyFrame* mpCurrentKeyFrame);
 
 public:
 
@@ -95,6 +100,7 @@ public:
     // Current Frame
     Frame mCurrentFrame;
     cv::Mat mImGray;
+    cv::Mat mImGrayRight;
 
     // Initialization Variables (Monocular)
     std::vector<int> mvIniLastMatches;
@@ -114,6 +120,12 @@ public:
     bool mbOnlyTracking;
 
     void Reset();
+
+    std::vector<int> line_matches;
+    std::vector<int> all_line_matches;
+
+    LineExtractor* lineExtractorLeft, *lineExtractorRight;
+    LineMatcher* lineMatcher;
 
 protected:
 
@@ -144,6 +156,10 @@ protected:
     bool NeedNewKeyFrame();
     void CreateNewKeyFrame();
 
+    void AddLinesFrom(const std::vector<MapLine*>& lines_last, const Eigen::Matrix4d& T_curr,
+            const std::vector<cv::Mat>& descs, double thr, Frame* frame = NULL);
+    int MatchLinesLastKF(bool do_skip_addnew, KeyFrame* pKF);
+
     // In case of performing only localization, this flag is true when there are no matches to
     // points in the map. Still tracking will continue if there are enough matches with temporal points.
     // In that case we are doing visual odometry. The system will try to do relocalization to recover
@@ -169,6 +185,9 @@ protected:
     KeyFrame* mpReferenceKF;
     std::vector<KeyFrame*> mvpLocalKeyFrames;
     std::vector<MapPoint*> mvpLocalMapPoints;
+
+    std::vector<MapLine*> local_lines;
+    std::vector<cv::Mat> local_line_descs;
     
     // System
     System* mpSystem;
@@ -214,6 +233,18 @@ protected:
     bool mbRGB;
 
     list<MapPoint*> mlpTemporalPoints;
+
+    cv::Mat imLeftLast, imLeftCurr;
+
+    double mdThr;
+
+    int minLineLen;
+
+    bool no_lba = false;
+
+    double gamma;
+
+    int maxInCell=0;
 };
 
 } //namespace ORB_SLAM

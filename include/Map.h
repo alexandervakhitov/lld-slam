@@ -16,6 +16,8 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
+*
+* Modified by Alexander Vakhitov (2018): added MapLine-related containers and methods
 */
 
 #ifndef MAP_H
@@ -52,12 +54,17 @@ public:
     std::vector<MapPoint*> GetAllMapPoints();
     std::vector<MapPoint*> GetReferenceMapPoints();
 
+    vector<MapLine*> GetAllMapLines();
+
     long unsigned int MapPointsInMap();
     long unsigned  KeyFramesInMap();
 
     long unsigned int GetMaxKFid();
 
     void clear();
+
+    void AddMapLine(MapLine* pML);
+    void EraseMapLine(MapLine* pML);
 
     vector<KeyFrame*> mvpKeyFrameOrigins;
 
@@ -69,6 +76,8 @@ public:
 protected:
     std::set<MapPoint*> mspMapPoints;
     std::set<KeyFrame*> mspKeyFrames;
+
+    std::set<MapLine*> mspMapLines;
 
     std::vector<MapPoint*> mvpReferenceMapPoints;
 

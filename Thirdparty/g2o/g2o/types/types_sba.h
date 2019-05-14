@@ -24,6 +24,9 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+//Modified by Alexander Vakhitov (2018)
+//Added VertexSBALine
+
 #ifndef G2O_SBA_TYPES
 #define G2O_SBA_TYPES
 
@@ -54,6 +57,56 @@ namespace g2o {
       Eigen::Map<const Vector3d> v(update);
       _estimate += v;
     }
+};
+
+class LineParams {
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    LineParams();
+
+    LineParams(const LineParams& line_params);
+
+    LineParams(const Eigen::Quaterniond& q, double alpha);
+
+    void SetQ(const Eigen::Quaterniond& q);
+    Eigen::Quaterniond GetQ() const;
+    Eigen::Matrix3d GetR() const ;
+    double GetAlpha() const;
+    void SetAlpha(double alpha);
+
+private:
+    Eigen::Quaterniond q;
+    double alpha;
+};
+
+class VertexSBALine : public BaseVertex<4, LineParams  >
+{
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    VertexSBALine() : BaseVertex<4, LineParams  >() {};
+    virtual bool read(std::istream&) {return true;};
+    virtual bool write(std::ostream& ) const {return true;};
+
+    virtual void setToOriginImpl() {
+        _estimate.SetAlpha(0.0);
+        _estimate.SetQ(Eigen::Quaterniond::Identity());
+
+    }
+
+    virtual void oplusImpl(const double* update)
+    {
+        Eigen::Quaterniond qr;
+        Eigen::Map<const Eigen::Vector3d> r_upd(update);
+        qr.vec() = r_upd;
+        qr.w() = sqrt(1.0 - qr.vec().squaredNorm()); // should always be positive
+
+        _estimate.SetQ(qr * _estimate.GetQ());
+
+        _estimate.SetAlpha(_estimate.GetAlpha() + update[3]);
+
+    }
+
 };
 
 } // end namespace

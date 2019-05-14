@@ -29,6 +29,7 @@
 
 #include<System.h>
 #include "Sleep.h"
+#include <include/LinesConfigurator.h>
 
 using namespace std;
 
@@ -62,7 +63,9 @@ int main(int argc, char **argv)
     }
 
     // Read rectification parameters
-    cv::FileStorage fsSettings(argv[2], cv::FileStorage::READ);
+    std::string strSettingsFile = argv[2];
+    cv::FileStorage fsSettings(strSettingsFile, cv::FileStorage::READ);
+
     if(!fsSettings.isOpened())
     {
         cerr << "ERROR: Wrong path to settings" << endl;
@@ -102,7 +105,11 @@ int main(int argc, char **argv)
     const int nImages = vstrImageLeft.size();
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::STEREO,true);
+    StoredLineExtractor* lineExtractorLeft = LinesConfigurator::CreateLineExtractor(strSettingsFile, true);
+    StoredLineExtractor* lineExtractorRight = LinesConfigurator::CreateLineExtractor(strSettingsFile, false);
+
+    // Create SLAM system. It initializes all system threads and gets ready to process frames.
+    ORB_SLAM2::System SLAM(argv[1],strSettingsFile,ORB_SLAM2::System::STEREO, lineExtractorLeft, lineExtractorRight, true);
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
@@ -116,6 +123,12 @@ int main(int argc, char **argv)
     cv::Mat imLeft, imRight, imLeftRect, imRightRect;
     for(int ni=0; ni<nImages; ni++)
     {
+        if (lineExtractorLeft)
+        {
+            lineExtractorLeft->SetFrameId(ni);
+            lineExtractorRight->SetFrameId(ni);
+        }
+
         // Read left and right images from file
         imLeft = cv::imread(vstrImageLeft[ni],CV_LOAD_IMAGE_UNCHANGED);
         imRight = cv::imread(vstrImageRight[ni],CV_LOAD_IMAGE_UNCHANGED);

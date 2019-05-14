@@ -16,6 +16,8 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
+*
+* Modified by Alexander Vakhitov (2018): added MapLine-related containers and methods
 */
 
 #ifndef FRAME_H
@@ -24,11 +26,15 @@
 #include<vector>
 
 #include "MapPoint.h"
+#include "MapLine.h"
 #include "Thirdparty/DBoW2/DBoW2/BowVector.h"
 #include "Thirdparty/DBoW2/DBoW2/FeatureVector.h"
 #include "ORBVocabulary.h"
 #include "KeyFrame.h"
 #include "ORBextractor.h"
+
+#include <include/LineExtractor.h>
+#include <include/LineMatcher.h>
 
 #include <opencv2/opencv.hpp>
 
@@ -36,6 +42,8 @@ namespace ORB_SLAM2
 {
 #define FRAME_GRID_ROWS 48
 #define FRAME_GRID_COLS 64
+#define FRAME_DIST_CELLS 50
+#define FRAME_ANG_CELLS 50
 
 class MapPoint;
 class KeyFrame;
@@ -49,13 +57,17 @@ public:
     Frame(const Frame &frame);
 
     // Constructor for stereo cameras.
-    Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeStamp, ORBextractor* extractorLeft, ORBextractor* extractorRight, ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth);
+    Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeStamp, ORBextractor* extractorLeft,
+          ORBextractor* extractorRight, ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf,
+          const float &thDepth, LineExtractor* linesLeft, LineExtractor* linesRight, LineMatcher* lineMatcher,
+          double tau, int minLineLen, int maxInCell);
 
     // Constructor for RGB-D cameras.
     Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth);
 
     // Constructor for Monocular cameras.
-    Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth);
+    Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,
+          LineExtractor* linesExtractor, ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth);
 
     // Extract ORB on the image. 0 for left image and 1 for right image.
     void ExtractORB(int flag, const cv::Mat &im);
@@ -104,12 +116,14 @@ public:
 
     // Feature extractor. The right is used only in the stereo case.
     ORBextractor* mpORBextractorLeft, *mpORBextractorRight;
+    LineExtractor *mpLineExtractorLeft, *mpLineExtractorRight;
 
     // Frame timestamp.
     double mTimeStamp;
 
     // Calibration matrix and OpenCV distortion parameters.
     cv::Mat mK;
+    Eigen::Matrix3d Ke;
     static float fx;
     static float fy;
     static float cx;
@@ -142,6 +156,10 @@ public:
     std::vector<float> mvuRight;
     std::vector<float> mvDepth;
 
+    //for dataset collection
+    std::vector<int> mvPointMatches;
+    int N_right;
+
     // Bag of Words Vector structures.
     DBoW2::BowVector mBowVec;
     DBoW2::FeatureVector mFeatVec;
@@ -151,9 +169,12 @@ public:
 
     // MapPoints associated to keypoints, NULL pointer if no association.
     std::vector<MapPoint*> mvpMapPoints;
+    std::vector<MapLine*> mvpMapLines;
 
     // Flag to identify outlier associations.
     std::vector<bool> mvbOutlier;
+
+    std::vector<bool> mvbOutlierLines;
 
     // Keypoints are assigned to cells in a grid to reduce matching complexity when projecting MapPoints.
     static float mfGridElementWidthInv;
@@ -188,6 +209,14 @@ public:
     static bool mbInitialComputations;
 
 
+    //av
+    std::vector<KeyLine> mvLinesLeft, mvLinesRight;
+
+    cv::Mat mDescriptorsLines, mDescriptorsLinesRight;
+    std::vector<int> line_matches;
+
+    std::vector<std::vector<std::vector<int>>> lines_grid;
+    double max_dist;
 private:
 
     // Undistort keypoints given OpenCV distortion parameters.
@@ -201,11 +230,17 @@ private:
     // Assign keypoints to the grid for speed up feature matching (called in the constructor).
     void AssignFeaturesToGrid();
 
+    void CreateLineGrid();
+
     // Rotation, translation and camera center
     cv::Mat mRcw;
     cv::Mat mtcw;
     cv::Mat mRwc;
     cv::Mat mOw; //==mtwc
+
+    double thrDD;
+
+    int maxInCell;
 };
 
 }// namespace ORB_SLAM

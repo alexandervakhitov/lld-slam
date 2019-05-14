@@ -16,6 +16,8 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Modified by Alexander Vakhitov: added line extractors
 */
 
 
@@ -29,6 +31,9 @@
 
 #include<System.h>
 #include "Sleep.h"
+#include <include/LineExtractor.h>
+#include <include/LinesConfigurator.h>
+#include <include/StoredLineExtractor.h>
 
 using namespace std;
 
@@ -51,8 +56,13 @@ int main(int argc, char **argv)
 
     const int nImages = vstrImageLeft.size();
 
+    std::string strSettingsFile = argv[2];
+
+    StoredLineExtractor* lineExtractorLeft = LinesConfigurator::CreateLineExtractor(strSettingsFile, true);
+    StoredLineExtractor* lineExtractorRight = LinesConfigurator::CreateLineExtractor(strSettingsFile, false);
+
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::STEREO,true);
+    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::STEREO,lineExtractorLeft,lineExtractorRight,true);
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
@@ -69,6 +79,12 @@ int main(int argc, char **argv)
         // Read left and right images from file
         imLeft = cv::imread(vstrImageLeft[ni],CV_LOAD_IMAGE_UNCHANGED);
         imRight = cv::imread(vstrImageRight[ni],CV_LOAD_IMAGE_UNCHANGED);
+
+        if (lineExtractorLeft) {
+            lineExtractorLeft->SetFrameId(ni);
+            lineExtractorRight->SetFrameId(ni);
+        }
+
         double tframe = vTimestamps[ni];
 
         if(imLeft.empty())
