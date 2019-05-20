@@ -24,6 +24,7 @@
 #include <vector>
 #include "KeyFrame.h"
 #include "vgl.h"
+typedef cv::line_descriptor::KeyLine KeyLine;
 
 void GetHoughCoordinates(const Eigen::Vector3d& leq0, double sx, double sy,
                          std::vector<int>* dist_inds, std::vector<int>* ang_inds,

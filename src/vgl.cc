@@ -387,21 +387,6 @@ void GetMinMax(const int& a, const int& b, int* min_p, int* max_p)
 //    double d4, p4;
 //    ReprojectLinePointTo3D(X0c, line_dir_c, xe3, &d4, &p4);
 //}
-void GetYSortedEndPoints(const KeyLine& kl1, int* x1_s, int* x1_e, int* y1_s, int* y1_e)
-{
-    if (kl1.startPointY < kl1.endPointY)
-    {
-        *x1_s = kl1.startPointX;
-        *y1_s = kl1.startPointY;
-        *x1_e = kl1.endPointX;
-        *y1_e = kl1.endPointY;
-    } else {
-        *x1_s = kl1.endPointX;
-        *y1_s = kl1.endPointY;
-        *x1_e = kl1.startPointX;
-        *y1_e = kl1.startPointY;
-    }
-}
 
 double GetXByY(const int& x_s, const int& x_e, const int& y_s, const int& y_e, int y_ref)
 {

@@ -47,31 +47,14 @@ Frame::Frame(const Frame &frame)
      mvKeysRight(frame.mvKeysRight), mvKeysUn(frame.mvKeysUn),  mvuRight(frame.mvuRight),
      mvDepth(frame.mvDepth), mBowVec(frame.mBowVec), mFeatVec(frame.mFeatVec),
      mDescriptors(frame.mDescriptors.clone()), mDescriptorsRight(frame.mDescriptorsRight.clone()),
-     mvpMapPoints(frame.mvpMapPoints),
-     mvpMapLines(frame.mvpMapLines),
-     mvbOutlier(frame.mvbOutlier),
-     mvbOutlierLines(frame.mvbOutlierLines),
-     mnId(frame.mnId),
-     mpReferenceKF(frame.mpReferenceKF), mnScaleLevels(frame.mnScaleLevels),
-     mfScaleFactor(frame.mfScaleFactor), mfLogScaleFactor(frame.mfLogScaleFactor),
-
-
-
-
-
-     mvScaleFactors(frame.mvScaleFactors),
-     mvInvScaleFactors(frame.mvInvScaleFactors),
-
-     mvLevelSigma2(frame.mvLevelSigma2),
-
-
-
-
-     mvInvLevelSigma2(frame.mvInvLevelSigma2),
+     mvpMapPoints(frame.mvpMapPoints), mvpMapLines(frame.mvpMapLines), mvbOutlier(frame.mvbOutlier),
+     mvbOutlierLines(frame.mvbOutlierLines), mnId(frame.mnId), mpReferenceKF(frame.mpReferenceKF),
+     mnScaleLevels(frame.mnScaleLevels), mfScaleFactor(frame.mfScaleFactor), mfLogScaleFactor(frame.mfLogScaleFactor),
+     mvScaleFactors(frame.mvScaleFactors), mvInvScaleFactors(frame.mvInvScaleFactors),
+     mvLevelSigma2(frame.mvLevelSigma2), mvInvLevelSigma2(frame.mvInvLevelSigma2),
      mvLinesLeft(frame.mvLinesLeft), mvLinesRight(frame.mvLinesRight),
      mDescriptorsLines(frame.mDescriptorsLines), mDescriptorsLinesRight(frame.mDescriptorsLinesRight.clone()),
-     line_matches(frame.line_matches),
-     max_dist(frame.max_dist), maxInCell(frame.maxInCell)
+     line_matches(frame.line_matches), max_dist(frame.max_dist), maxInCell(frame.maxInCell)
 {
     for(int i=0;i<FRAME_GRID_COLS;i++)
         for(int j=0; j<FRAME_GRID_ROWS; j++)
@@ -96,12 +79,9 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
              LineMatcher* lineMatcher,
              double tau, int minLineLen, int maxInCell)
         :mpORBvocabulary(voc),mpORBextractorLeft(extractorLeft),mpORBextractorRight(extractorRight),
-        mTimeStamp(timeStamp),
-        mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
-         mpLineExtractorLeft(linesExtractorLeft),
-         mpLineExtractorRight(linesExtractorRight),
-         mpReferenceKF(static_cast<KeyFrame*>(NULL)),
-         thrDD(tau), maxInCell(maxInCell)
+         mpLineExtractorLeft(linesExtractorLeft), mpLineExtractorRight(linesExtractorRight),
+        mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
+         mpReferenceKF(static_cast<KeyFrame*>(NULL)), thrDD(tau), maxInCell(maxInCell)
 {
     // Frame ID
     mnId=nNextId++;

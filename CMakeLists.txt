@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(LLD_SLAM)
 
-set(LBDMOD_DIR <DIR WHERE LBDMOD IS INSTALLED>)
+set(LBDMOD_DIR /home/alexander/materials/lld_final/lbdmod)
 
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Release)

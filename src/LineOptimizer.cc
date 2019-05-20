@@ -52,8 +52,6 @@ void LineOptimizer::AddLineMinimal(int line_id, const Eigen::Matrix3d& K_eig, do
     v_line->setMarginalized(true);
     optimizer.addVertex(v_line);
 
-    Eigen::Matrix3d R = v_line->estimate().GetR();
-
     for (std::map<int, std::pair<KeyLine, KeyLine>>::const_iterator mit = proj_map.begin(), mend = proj_map.end(); mit != mend; mit++)
     {
         int kf_id = mit->first;

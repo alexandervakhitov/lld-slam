@@ -27,7 +27,6 @@
 #include <opencv2/line_descriptor.hpp>
 
 typedef std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d> > posevector;
-typedef cv::line_descriptor::KeyLine KeyLine;
 
 #include <opencv2/core/types.hpp>
 

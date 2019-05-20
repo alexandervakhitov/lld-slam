@@ -38,34 +38,16 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mnLoopQuery(0), mnLoopWords(0), mnRelocQuery(0), mnRelocWords(0), mnBAGlobalForKF(0),
     fx(F.fx), fy(F.fy), cx(F.cx), cy(F.cy), invfx(F.invfx), invfy(F.invfy),
     mbf(F.mbf), mb(F.mb), mThDepth(F.mThDepth), N(F.N),
-    N_right(F.N_right),
-    mvKeys(F.mvKeys), mvKeysUn(F.mvKeysUn),
-    mvuRight(F.mvuRight), mvDepth(F.mvDepth),
+    N_right(F.N_right), mvKeys(F.mvKeys), mvKeysUn(F.mvKeysUn), mvuRight(F.mvuRight), mvDepth(F.mvDepth),
+    mvPointMatches(F.mvPointMatches), mDescriptors(F.mDescriptors.clone()),
+    mDescriptorsLines(F.mDescriptorsLines.clone()), mvLinesLeft(F.mvLinesLeft), mvLinesRight(F.mvLinesRight),
     mBowVec(F.mBowVec), mFeatVec(F.mFeatVec), mnScaleLevels(F.mnScaleLevels), mfScaleFactor(F.mfScaleFactor),
     mfLogScaleFactor(F.mfLogScaleFactor), mvScaleFactors(F.mvScaleFactors), mvLevelSigma2(F.mvLevelSigma2),
     mvInvLevelSigma2(F.mvInvLevelSigma2), mnMinX(F.mnMinX), mnMinY(F.mnMinY), mnMaxX(F.mnMaxX),
-    mnMaxY(F.mnMaxY), mK(F.mK), mvpMapPoints(F.mvpMapPoints),
-    mvpMapLines(F.mvpMapLines),
-    mpKeyFrameDB(pKFDB),
-    mpORBvocabulary(F.mpORBvocabulary),
-
-
-
-    mvPointMatches(F.mvPointMatches),
-    mDescriptors(F.mDescriptors.clone()),
-    mDescriptorsLines(F.mDescriptorsLines.clone()),
-    mvLinesLeft(F.mvLinesLeft), mvLinesRight(F.mvLinesRight),
-    Ke(F.Ke),
-    line_matches(F.line_matches),
-    lines_grid(F.lines_grid), max_dist(F.max_dist),
-
-    mbFirstConnection(true),
-    mpParent(NULL),
-    mbNotErase(false),
-    mbToBeErased(false),
-    mbBad(false),
-    mHalfBaseline(F.mb/2),
-    mpMap(pMap)
+    mnMaxY(F.mnMaxY), mK(F.mK), Ke(F.Ke), line_matches(F.line_matches), lines_grid(F.lines_grid),
+    max_dist(F.max_dist), mvpMapPoints(F.mvpMapPoints), mvpMapLines(F.mvpMapLines), mpKeyFrameDB(pKFDB),
+    mpORBvocabulary(F.mpORBvocabulary), mbFirstConnection(true), mpParent(NULL), mbNotErase(false),
+    mbToBeErased(false), mbBad(false), mHalfBaseline(F.mb/2), mpMap(pMap)
 {
     mnId=nNextId++;
 
