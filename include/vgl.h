@@ -28,8 +28,9 @@
 typedef std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d> > posevector;
 
 namespace vgl {
+    //Line triangulation from multiple cameras using SVD
     //input:
-    // Ts: sequence of camera->world transforms
+    // Ts: sequence of camera->world 4x4 transforms
     // lines: sequence of 2D line equations
     //
     // X0_p: pointer to the point X_0 (intersection of a line and a normal plane passing through the origin)
@@ -38,9 +39,17 @@ namespace vgl {
     bool MultiTriangulateLine(const posevector& Ts, const std::vector<Eigen::Vector3d>& lines,
             Eigen::Vector3d* X0_p, Eigen::Vector3d* line_dir_p);
 
-    bool TriangulateLine(const Eigen::Matrix<double, 3, 4> &T1,
-                         const Eigen::Matrix<double, 3, 4> &T2, const Eigen::Vector3d &line2d_n_1,
-                         const Eigen::Vector3d &line2d_n_2, Eigen::Vector3d *X0, Eigen::Vector3d *line_dir);
+    //Line triangulation from two cameras (minimal case)
+    //input:
+    // T1, T2: camera->world 3x4 transforms
+    // line2d_n_1, line2d_n_2: 2D line equations
+    //
+    // X0_p: pointer to the point X_0 (intersection of a line and a normal plane passing through the origin)
+    // line_dir_p: pointer to the line direction vector
+    //return value: true if triangulation is successful
+    bool TriangulateLine(const Eigen::Matrix<double, 3, 4> &T1, const Eigen::Matrix<double, 3, 4> &T2,
+            const Eigen::Vector3d &line2d_n_1, const Eigen::Vector3d &line2d_n_2,
+            Eigen::Vector3d *X0_p, Eigen::Vector3d *line_dir_p);
 
     void NormalizedLineEquation(double sx, double sy, double ex, double ey, const Eigen::Matrix3d& K, Eigen::Vector3d* lineEq);
 

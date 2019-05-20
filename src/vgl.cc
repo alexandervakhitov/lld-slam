@@ -104,22 +104,7 @@ bool vgl::TriangulateLine(const Eigen::Matrix<double, 3, 4>& T1,
     }
     *X0 = qr.solve(b);
 
-//    double res = line2d_n_2.transpose() * T2.block<3,3>(0,0).transpose() * (*X0 + *line_dir - T2.block<3,1>(0,3) );
-//    std::cout << res << std::endl;
-//    std::cout << line2d_n_1.transpose() * T1.block<3,3>(0,0).transpose() * (*X0 + *line_dir - T1.block<3,1>(0,3 ) << std::endl;
-//
-//    std::cout << line2d_n_2.transpose() * T2.block<3,3>(0,0).transpose() * (*X0 - T2.block<3,1>(0,3) ) << std::endl;
-//    std::cout << line2d_n_2.transpose() * T2.block<3,3>(0,0).transpose() * (*X0 + *line_dir - T2.block<3,1>(0,3) ) << std::endl;
-
     return true;
-//    Eigen::JacobiSVD<Eigen::Matrix3d> svd(M, Eigen::ComputeFullV);
-//    *X0 = svd.matrixV().col(2);
-
-
-//    Eigen::Vector3d test0 = M * (*X0);
-
-//    std::cout << test0.norm() << std::endl;
-
 }
 
 int GetAxisCode(const Eigen::Vector3d& line_dir)
