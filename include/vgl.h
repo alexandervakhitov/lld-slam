@@ -22,18 +22,21 @@
 #define LINEDESCDATACOLLECTOR_VGL_H
 
 #include <Eigen/Dense>
-#include<Eigen/StdVector>
+#include <Eigen/StdVector>
 #include <opencv2/core/types.hpp>
-#include <opencv2/line_descriptor.hpp>
 
 typedef std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d> > posevector;
 
-#include <opencv2/core/types.hpp>
-
 namespace vgl {
-    bool MultiTriangulateLine(const posevector& Ts,
-                                   const std::vector<Eigen::Vector3d>& lines,
-                                   Eigen::Vector3d* X0_p, Eigen::Vector3d* line_dir_p);
+    //input:
+    // Ts: sequence of camera->world transforms
+    // lines: sequence of 2D line equations
+    //
+    // X0_p: pointer to the point X_0 (intersection of a line and a normal plane passing through the origin)
+    // line_dir_p: pointer to the line direction vector
+    //return value: true if triangulation is successful
+    bool MultiTriangulateLine(const posevector& Ts, const std::vector<Eigen::Vector3d>& lines,
+            Eigen::Vector3d* X0_p, Eigen::Vector3d* line_dir_p);
 
     bool TriangulateLine(const Eigen::Matrix<double, 3, 4> &T1,
                          const Eigen::Matrix<double, 3, 4> &T2, const Eigen::Vector3d &line2d_n_1,
