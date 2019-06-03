@@ -13,7 +13,7 @@ It computes the camera trajectory and a sparse 3D reconstruction consisting of p
 
 ### Related Publications:
 
-[Point+Line LLD SLAM] A. Vakhitov and V. Lempitsky. **Learnable Line Segment Descriptor for Visual SLAM**. *IEEE Access, 2015.*
+[Point+Line LLD SLAM] A. Vakhitov and V. Lempitsky. **Learnable Line Segment Descriptor for Visual SLAM**. *IEEE Access, 2019.*
 
 # 1. License
 
