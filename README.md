@@ -9,7 +9,7 @@
 LLD-SLAM is a real-time point+line **Stereo SLAM** library based on a well known ORB-SLAM2 system.
 It computes the camera trajectory and a sparse 3D reconstruction consisting of points and lines. 
 
-[![LLD-SLAM](https://img.youtube.com/vi/u0lUQNd_ECw/0.jpg)](https://www.youtube.com/watch?v=u0lUQNd_ECw)
+[![LLD-SLAM](https://images.unsplash.com/photo-1508138221679-760a23a2285b?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=667&q=80)](https://www.youtube.com/watch?v=u0lUQNd_ECw)
 
 ### Related Publications:
 
