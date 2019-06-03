@@ -62,7 +62,7 @@ git clone git@github.com:alexandervakhitov/lld-slam.git LLD_SLAM
 We provide a script `build.sh` to build the *Thirdparty* libraries and *LLD-SLAM*. Please make sure you have installed all required dependencies (see section 2). 
 Please modify the CMakelists.txt: insert a correct path to the LBDMOD library instead of <LBDMOD LIBRARY DIR>. Then execute:
 ```
-cd ORB_SLAM2
+cd LLD_SLAM
 chmod +x build.sh
 ./build.sh
 ```
