@@ -40,7 +40,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 {
     // Output welcome message
     cout << endl <<
-    "ORB-SLAM2 Copyright (C) 2014-2016 Raul Mur-Artal, University of Zaragoza." << endl <<
+    "LLD-SLAM2 Copyright (C) 2018 Alexander Vakhitov, Skoltech; 2014-2016 Raul Mur-Artal, University of Zaragoza." << endl <<
     "This program comes with ABSOLUTELY NO WARRANTY;" << endl  <<
     "This is free software, and you are welcome to redistribute it" << endl <<
     "under certain conditions. See LICENSE.txt." << endl << endl;
