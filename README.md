@@ -1,6 +1,6 @@
 # LLD-SLAM
 **Authors:** 
-[Alexander Vakhitov](https://alexandervakhitov.github.io/), based on the ORB-SLAM2 system by
+[Alexander Vakhitov](https://alexandervakhitov.github.io/), based on the [ORB-SLAM2](https://github.com/raulmur/ORB_SLAM2.git) system by
 [Raul Mur-Artal](http://webdiis.unizar.es/~raulmur/), [Juan D. Tardos](http://webdiis.unizar.es/~jdtardos/), [J. M. M. Montiel](http://webdiis.unizar.es/~josemari/) and [Dorian Galvez-Lopez](http://doriangalvez.com/) ([DBoW2](https://github.com/dorian3d/DBoW2))
 
 **03.06.2019** Release of the LLD-SLAM source code
@@ -22,14 +22,10 @@ LLD-SLAM is released under a [GPLv3 license](https://github.com/raulmur/ORB_SLAM
 If you use LLD-SLAM in an academic work, please cite:
 
     @article{murTRO2015,
-      title={{ORB-SLAM}: a Versatile and Accurate Monocular {SLAM} System},
-      author={Mur-Artal, Ra\'ul, Montiel, J. M. M. and Tard\'os, Juan D.},
-      journal={IEEE Transactions on Robotics},
-      volume={31},
-      number={5},
-      pages={1147--1163},
-      doi = {10.1109/TRO.2015.2463671},
-      year={2015}
+      title={Learnable Line Segment Descriptor for Visual SLAM},
+      author={Vakhitov, Alexander and Lempitsky, Victor},
+      journal={IEEE Access},
+      year={2019}
      }
 
 # 2. Prerequisites
@@ -81,7 +77,7 @@ This will create **libLLD_SLAM.so**  at *lib* folder and the executables **stere
 
 2. Download a sequence (ASL format) from http://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets
 
-3. Download the precomputed line detections and LBD descriptors from . Modify the `KITTIX_Y.yaml`, 'EuRoC_Y.yaml' files to include the paths to the downloaded and unpacked dataset.
+3. Download the precomputed line detections and LBD descriptors from https://yadi.sk/d/D5QEuced7y5I1w. Modify the `KITTIX_Y.yaml`, 'EuRoC_Y.yaml' files to include the paths to the downloaded and unpacked dataset.
 
 4. Execute one of the following commands depending on the dataset you are going to use. Change `KITTIX_Y.yaml` to 
 KITTI00-02_Y.yaml, KITTI03_Y.yaml or KITTI04-12_Y.yaml for Y = {LBD,Empty} for sequence 0 to 2, 3, and 4 to 12 respectively. Change `PATH_TO_DATASET_FOLDER` to the uncompressed dataset folder. Change `SEQUENCE_NUMBER` to 00, 01, 02,.., 11. 
