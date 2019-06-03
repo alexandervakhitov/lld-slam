@@ -3,6 +3,7 @@
 [Alexander Vakhitov](https://alexandervakhitov.github.io/), based on the [ORB-SLAM2](https://github.com/raulmur/ORB_SLAM2.git) system by
 [Raul Mur-Artal](http://webdiis.unizar.es/~raulmur/), [Juan D. Tardos](http://webdiis.unizar.es/~jdtardos/), [J. M. M. Montiel](http://webdiis.unizar.es/~josemari/) and [Dorian Galvez-Lopez](http://doriangalvez.com/) ([DBoW2](https://github.com/dorian3d/DBoW2))
 
+
 **03.06.2019** Release of the LLD-SLAM source code
 
 LLD-SLAM is a real-time point+line **Stereo SLAM** library based on a well known ORB-SLAM2 system.
