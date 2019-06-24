@@ -80,7 +80,7 @@ This will create **libLLD_SLAM.so**  at *lib* folder and the executables **stere
 3. Download the precomputed line detections and LBD descriptors from https://yadi.sk/d/D5QEuced7y5I1w. Modify the `KITTIX_Y.yaml`, 'EuRoC_Y.yaml' files to include the paths to the downloaded and unpacked dataset.
 
 4. Execute one of the following commands depending on the dataset you are going to use. Change `KITTIX_Y.yaml` to 
-KITTI00-02_Y.yaml, KITTI03_Y.yaml or KITTI04-12_Y.yaml for Y = {LBD,Empty} for sequence 0 to 2, 3, and 4 to 12 respectively. Change `PATH_TO_DATASET_FOLDER` to the uncompressed dataset folder. Change `SEQUENCE_NUMBER` to 00, 01, 02,.., 11. 
+KITTI00-02_Y.yaml, KITTI03_Y.yaml or KITTI04-12_Y.yaml for Y = {LBD,Empty} for sequence 0 to 2, 3, and 4 to 12 respectively. Change `PATH_TO_DATASET_FOLDER` to the uncompressed dataset folder. Change `SEQUENCE_NUMBER` to 00, 01, 02,.., 11. Substitute $SSS with SEQUENCE_NUMBER in the *.yaml file.
 ```
 ./Examples/Stereo/stereo_kitti Vocabulary/ORBvoc.txt Examples/Stereo/KITTIX.yaml PATH_TO_DATASET_FOLDER/dataset/sequences/SEQUENCE_NUMBER
 ```
