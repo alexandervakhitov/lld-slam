@@ -35,7 +35,7 @@ We have tested the library in **Ubuntu 12.04**, **14.04** and **16.04**, but it 
 We use the new thread and chrono functionalities of C++11.
 
 ## LBDMOD library
-We use [LBDMOD](git@github.com:alexandervakhitov/lbdmod.git) for line detection and description. Please download, make, install and insert path to the CMakelists.txt.
+We use [LBDMOD](https://github.com/alexandervakhitov/lbdmod.git) for line detection and description. Please download, make, install and insert path to the CMakelists.txt.
 
 ## Pangolin
 We use [Pangolin](https://github.com/stevenlovegrove/Pangolin) for visualization and user interface. Dowload and install instructions can be found at: https://github.com/stevenlovegrove/Pangolin.
